@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>NexPay — P2P Market</title>
+<meta name="theme-color" content="#0b0f1a"/>
+<style>
+  :root{--bg:#0b0f1a;--card:#0f1424;--pri:#6ee7ff;--pri2:#7c3aed;--mut:#9aa3b2}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:
+    radial-gradient(1200px 600px at 90% 0%, rgba(124,58,237,.25), transparent 60%),
+    radial-gradient(900px 500px at -10% 100%, rgba(110,231,255,.18), transparent 60%),var(--bg);
+    color:#e7ecf5;font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+  header{display:flex;align-items:center;justify-content:space-between;background:#111827aa;
+    border-bottom:1px solid rgba(255,255,255,.08);padding:12px 16px;backdrop-filter:blur(6px)}
+  .brand{display:flex;align-items:center;gap:10px}
+  .flag{width:20px;height:14px;border-radius:2px;background:linear-gradient(#008751 0 50%,#fff 50% 66%,#fcd116 66% 83%,#e8112d 83% 100%);}
+  .select{background:#1f2937;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px}
+  .tabs{display:flex}
+  .tab{flex:1;text-align:center;padding:12px;font-weight:800;cursor:pointer;color:#b7bfcc;border-bottom:2px solid transparent}
+  .tab.active{color:#fff;border-bottom-color:var(--pri)}
+  .ads{padding:10px 12px 80px;max-width:900px;margin:0 auto}
+  .ad{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0;
+    padding:14px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)),var(--card);
+    border:1px solid rgba(255,255,255,.06);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .ad .name{font-weight:800}
+  .price{font-weight:900;background:linear-gradient(90deg,#fff,#cfeaff);-webkit-background-clip:text;color:transparent}
+  .meta{font-size:12px;color:var(--mut)}
+  .btn{cursor:pointer;border:none;padding:10px 14px;border-radius:12px;font-weight:800;
+    background:linear-gradient(90deg,#7c3aed,#6ee7ff);color:#0b0f1a}
+  footer{position:fixed;left:0;right:0;bottom:0;background:#111827ee;backdrop-filter:blur(6px);
+    display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid rgba(255,255,255,.08)}
+  .fitem{display:flex;flex-direction:column;align-items:center;gap:4px;color:#9aa3b2;text-decoration:none;font-weight:700}
+  .fitem.active{color:var(--pri)}
+  .alert{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;padding:12px 18px;border-radius:12px;
+    background:linear-gradient(90deg,#ff5f6d,#ffc371);color:#0b0f1a;font-weight:800;opacity:0;transition:.4s;z-index:9999}
+  .alert.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="flag" title="Nigeria"></div>
+    <strong>P2P • NGN</strong>
+  </div>
+  <select id="currency" class="select" onchange="restrictCurrency()">
+    <option value="NGN">🇳🇬 NGN</option>
+    <option>🇺🇸 USD</option><option>🇬🇧 GBP</option><option>🇰🇪 KES</option><option>🇿🇦 ZAR</option>
+    <option>🇬🇭 GHS</option><option>🇪🇺 EUR</option><option>🇨🇦 CAD</option><option>🇦🇺 AUD</option>
+    <option>🇮🇳 INR</option><option>🇨🇳 CNY</option><option>🇯🇵 JPY</option><option>🇧🇷 BRL</option>
+    <option>🇲🇽 MXN</option><option>🇹🇷 TRY</option>
+  </select>
+</header>
+
+<div class="tabs">
+  <div id="tabBuy"  class="tab active" onclick="switchTab('buy')">Buy</div>
+  <div id="tabSell" class="tab"        onclick="switchTab('sell')">Sell</div>
+</div>
+
+<section id="ads" class="ads"></section>
+
+<footer>
+  <a class="fitem active" href="p2p.html">P2P</a>
+  <a class="fitem" href="order.html">Orders</a>
+</footer>
+
+<div id="toast" class="alert"></div>
+
+<script>
+const banned = localStorage.getItem('p2pBanned') === 'true';
+const namesBuy = [
+  "Oladunnim452","Adeyemi Johnson","Grace Olu","Chinedu Kalu","Ngozi Esther",
+  "Ibrahim Musa","Bamidele Tayo","Samuel Ojo","Chioma Nneka","Kehinde Afolabi"
+];
+const namesSell = [
+  "Mobolaji Adebambo","Olawale Hassan","Fatima Bello","John Okeke","Blessing Omolara",
+  "Ahmed Abubakar","Chika Onoh","Tosin Ayodele","Musa Danjuma","Adaora Eze"
+];
+let currentTab='buy';
+
+function toast(msg, good=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background = good ? "linear-gradient(90deg,#6ee7ff,#7c3aed)" : "linear-gradient(90deg,#ff5f6d,#ffc371)";
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
+}
+function restrictCurrency(){
+  const sel=document.getElementById('currency');
+  if(sel.value!=='NGN'){
+    sel.value='NGN';
+    toast('⚠️ You are in Nigeria and can only select NGN.');
+  }
+}
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tabBuy').classList.toggle('active',tab==='buy');
+  document.getElementById('tabSell').classList.toggle('active',tab==='sell');
+  renderAds();
+}
+function notEligible(){ toast('❌ You are not eligible for this offer.'); }
+function clickPrimary(){
+  if(banned){ toast('🚫 Your account is restricted from P2P.'); return; }
+  location.href='buy.html';
+}
+function clickSellPrimary(){
+  if(banned){ toast('🚫 Your account is restricted from P2P.'); return; }
+  location.href='sell.html';
+}
+function renderAds(){
+  const wrap=document.getElementById('ads');
+  wrap.innerHTML='';
+  const list = currentTab==='buy'?namesBuy:namesSell;
+
+  list.forEach((n,i)=>{
+    const ad=document.createElement('div');
+    ad.className='ad';
+
+    if(currentTab==='buy'){
+      // BUY SIDE (unchanged)
+      ad.innerHTML=`
+        <div>
+          <div class="name">${n}</div>
+          <div class="price">₦ ${(1539.5 + i).toFixed(2)}</div>
+          <div class="meta">Quantity: ${(120+ i*20).toFixed(3)} USDT • Limits: ₦5,400 – ₦300,000 • Bank Transfer</div>
+        </div>
+        <button class="btn">Buy</button>
+      `;
+      const btn = ad.querySelector('.btn');
+      if(i===0){ btn.addEventListener('click', clickPrimary); }
+      else { btn.addEventListener('click', notEligible); }
+    }
+    else {
+      // SELL SIDE (BTC)
+      const qty = (0.0033 + i*0.03).toFixed(4); // different quantity up to ~0.3 BTC
+      const maxLimit = 478000 + (i*1800000);   // different limits up to ~17M NGN
+      ad.innerHTML=`
+        <div>
+          <div class="name">${n}</div>
+          <div class="price">₦ ${(1539.5 + i*50).toFixed(2)}</div>
+          <div class="meta">Quantity: ${qty} BTC • Limits: ₦300,000 – ₦${maxLimit.toLocaleString()} • Bank Transfer</div>
+        </div>
+        <button class="btn">Sell</button>
+      `;
+      const btn = ad.querySelector('.btn');
+      if(i===0){ btn.addEventListener('click', clickSellPrimary); }
+      else if(i===1 || i===2){ btn.addEventListener('click', notEligible); }
+      else { btn.addEventListener('click', notEligible); }
+    }
+    wrap.appendChild(ad);
+  });
+}
+renderAds();
+</script>
+</body>
+</html>

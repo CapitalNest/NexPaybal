@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>NexPay — Buy USDT</title>
+<meta name="theme-color" content="#0b0f1a"/>
+<style>
+  :root{--bg:#0b0f1a;--card:#0f1424;--pri:#6ee7ff;--pri2:#7c3aed;--mut:#9aa3b2}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;display:flex;flex-direction:column;align-items:center;padding:20px;background:
+    radial-gradient(1200px 600px at 90% 0%, rgba(124,58,237,.25), transparent 60%),
+    radial-gradient(900px 500px at -10% 100%, rgba(110,231,255,.18), transparent 60%),var(--bg);color:#e7ecf5;font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+  .wrap{width:100%;max-width:520px}
+  h2{margin:6px 0 2px;font-size:22px;font-weight:900}
+  .seller{color:var(--mut)}
+  .card{margin-top:16px;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)),var(--card);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  label{display:block;margin:8px 0 6px;font-weight:700}
+  input{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;font-size:16px}
+  .btn{margin-top:14px;width:100%;padding:14px;border:none;border-radius:12px;font-weight:900;background:linear-gradient(90deg,#7c3aed,#6ee7ff);color:#0b0f1a;cursor:pointer}
+  footer{position:fixed;left:0;right:0;bottom:0;background:#111827ee;border-top:1px solid rgba(255,255,255,.08);
+    display:flex;justify-content:space-around;padding:10px 0}
+  .fitem{color:#9aa3b2;text-decoration:none;font-weight:800}
+  #usdtInfo{margin-top:8px;font-weight:700;color:#6ee7ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>Buy USDT</h2>
+  <div class="seller">Seller • <strong>Oladunnim452{aimtoget}</strong></div>
+
+  <div class="card">
+    <label for="amount">Amount (₦5,870 – ₦300,000)</label>
+    <input id="amount" type="number" placeholder="Enter amount in NGN" oninput="calcUSDT()"/>
+    <div id="usdtInfo"></div>
+    <button class="btn" onclick="proceed()">Buy</button>
+    <p style="color:#9aa3b2;margin-top:10px">💬 Seller’s note: <em>Make the exact amount payment and upload your receipt.</em></p>
+  </div>
+</div>
+
+<footer>
+  <a class="fitem" href="p2p.html">P2P</a>
+  <a class="fitem" href="order.html">Orders</a>
+</footer>
+
+<script>
+function calcUSDT(){
+  const amt = parseInt(document.getElementById('amount').value,10);
+  const info = document.getElementById('usdtInfo');
+  if(!isNaN(amt) && amt >= 5400 && amt <= 300000){
+    const usdt = (amt / 1380).toFixed(2);
+    info.textContent = ` ≈ ${usdt} USDT`;
+  } else {
+    info.textContent = "";
+  }
+}
+
+function proceed(){
+  const amt = parseInt(document.getElementById('amount').value,10);
+  if(isNaN(amt) || amt<5400 || amt>300000){
+    alert("Enter an amount between ₦5,870 and ₦300,000.");
+    return;
+  }
+  const order = {
+    id: 'ORD-'+Date.now(),
+    seller: 'OLUWATOBILOBA OLATUNJI',
+    amount: amt,
+    stage: 'make_payment',                  // 1) 15 min timer
+    stageEndAt: Date.now() + 15*60*1000,
+    messages: [],
+    autoReplySent: false,
+    createdAt: Date.now(),
+    status: 'In Progress'
+  };
+  localStorage.setItem('currentP2POrder', JSON.stringify(order));
+  // Also ensure orders list exists
+  const list = JSON.parse(localStorage.getItem('orders')||'[]');
+  const exists = list.find(x=>x.id===order.id);
+  if(!exists){ list.unshift({id:order.id, seller:order.seller, amount:order.amount, status:'In Progress', createdAt:order.createdAt}); }
+  localStorage.setItem('orders', JSON.stringify(list));
+  location.href='payment.html';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>NexPay — Payment</title>
+<meta name="theme-color" content="#0b0f1a"/>
+<style>
+  :root{--bg:#0b0f1a;--card:#0f1424;--pri:#6ee7ff;--pri2:#7c3aed;--mut:#9aa3b2}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:
+    radial-gradient(1200px 600px at 90% 0%, rgba(124,58,237,.25), transparent 60%),
+    radial-gradient(900px 500px at -10% 100%, rgba(110,231,255,.18), transparent 60%),var(--bg);
+    color:#e7ecf5;font:16px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-weight:600}
+  .shell{min-height:100%;display:grid;grid-template-rows:auto 1fr auto}
+  header{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#111827aa;border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(6px)}
+  .title{font-weight:900;font-size:17px}
+  .badge{padding:8px 14px;border-radius:999px;background:rgba(110,231,255,.12);border:1px solid rgba(110,231,255,.25);color:#c8f5ff;font-weight:800}
+  .grid{display:grid;gap:18px;padding:16px;grid-template-columns:1fr}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)),var(--card);
+    border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .row{display:flex;justify-content:space-between;margin:10px 0;font-size:16px}
+  .mut{color:var(--mut);font-weight:700}
+  .btn{cursor:pointer;border:none;padding:14px 16px;border-radius:14px;font-weight:900;background:linear-gradient(90deg,#7c3aed,#6ee7ff);color:#0b0f1a;font-size:15px}
+  .btn-ghost{cursor:pointer;border:1px solid rgba(255,255,255,.15);padding:14px 16px;border-radius:14px;background:transparent;color:#e7ecf5;font-weight:900;font-size:15px}
+  .col-actions{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+  .timer{font-weight:900;background:linear-gradient(90deg,#fff,#cfeaff);-webkit-background-clip:text;color:transparent;font-size:16px}
+  .warn{color:#ffd7a8;font-weight:800;margin-top:10px}
+  /* Chat */
+  #contactBox{display:none;flex-direction:column;gap:12px}
+  .chat{display:flex;flex-direction:column;height:420px;border-radius:14px;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+  .chat-log{flex:1;overflow-y:auto;background:rgba(0,0,0,.25);padding:12px}
+  .msg{max-width:85%;margin:10px 0;padding:12px 14px;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.3);font-weight:600}
+  .me{margin-left:auto;background:linear-gradient(90deg,#7c3aed,#6ee7ff);color:#0b0f1a}
+  .you{background:#1f2937}
+  .ticks{font-size:11px;opacity:.85;margin-left:6px}
+  .chat-input{display:flex;gap:8px;padding:10px;background:#111827;border-top:1px solid rgba(255,255,255,.08)}
+  .chat-input input[type="text"]{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;font-size:14px}
+  .chat-input input[type="file"]{display:none}
+  .upl{border:1px dashed rgba(255,255,255,.25);padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:700;font-size:13px;color:#c8f5ff}
+  footer{background:#111827ee;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-around;padding:12px 0}
+  .fitem{color:#9aa3b2;text-decoration:none;font-weight:800;font-size:14px}
+  #toggleChatBtn{margin-top:14px;width:100%}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="title">Payment • Oladunnim452</div>
+  <div class="badge" id="stageBadge">Make Payment</div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <div class="row"><span class="mut">Amount</span><strong id="amt">₦0</strong></div>
+    <div class="row"><span class="mut">Bank Name</span><strong>PalmPay LTD</strong></div>
+    <div class="row"><span class="mut">Bank Details</span><strong>667-3673-977 • PalmPay LTD</strong></div>
+    <div class="row"><span class="mut">Time Left</span><span class="timer" id="timer">—</span></div>
+    <div class="warn" id="instr">Do not close this page until the payment is completed.</div>
+    <div class="col-actions">
+      <button class="btn" id="btnComplete">Payment Completed</button>
+      <button class="btn-ghost" id="btnCancel">Cancel Payment</button>
+    </div>
+    <button class="btn-ghost" id="toggleChatBtn">Contact Seller</button>
+    <div id="contactBox">
+      <div style="font-weight:900;font-size:16px">Chat with Seller</div>
+      <div class="chat">
+        <div id="chatLog" class="chat-log"></div>
+        <div class="chat-input">
+          <label class="upl" for="img">+ Image</label>
+          <input id="img" type="file" accept="image/*"/>
+          <input id="text" type="text" placeholder="Type a message..."/>
+          <button class="btn" id="sendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a class="fitem" href="p2p.html">P2P</a>
+  <a class="fitem" href="order.html">Orders</a>
+</footer>
+</div>
+
+<script>
+/* all existing functions remain unchanged */
+const STAGES={MAKE:'make_payment',WAIT_CONFIRM:'await_seller_confirm',UPLOAD_RECEIPT:'await_receipt',REVIEW:'await_review_after_receipt',DONE:'done',BANNED:'banned'};
+const fmt=n=>'₦'+Number(n).toLocaleString();
+const logEl=document.getElementById('chatLog');
+const timerEl=document.getElementById('timer');
+const badgeEl=document.getElementById('stageBadge');
+const instrEl=document.getElementById('instr');
+
+let order=JSON.parse(localStorage.getItem('currentP2POrder')||'null');
+if(!order){location.href='p2p.html';}
+document.getElementById('amt').textContent=fmt(order.amount);
+
+function save(){localStorage.setItem('currentP2POrder',JSON.stringify(order));}
+function pushOrderRecord(status){
+  const list=JSON.parse(localStorage.getItem('orders')||'[]');
+  const idx=list.findIndex(x=>x.id===order.id);
+  if(idx>-1){list[idx].status=status;}
+  else{list.unshift({id:order.id,seller:order.seller,amount:order.amount,status,createdAt:order.createdAt});}
+  localStorage.setItem('orders',JSON.stringify(list));
+}
+function renderChat(){
+  logEl.innerHTML='';
+  (order.messages||[]).forEach(m=>{
+    const d=document.createElement('div');
+    d.className='msg '+(m.who==='me'?'me':'you');
+    if(m.type==='img'){
+      d.innerHTML=`<div style="font-weight:800;margin-bottom:4px">${m.who==='me'?'You':'Seller'}</div>
+      <img src="${m.data}" style="max-width:220px;border-radius:10px;display:block"/>
+      <div style="font-size:11px;opacity:.8;margin-top:4px">${new Date(m.at).toLocaleTimeString()} ${m.who==='me'?'<span class="ticks">✅✅</span>':''}</div>`;
+    }else{
+      d.innerHTML=`<div style="font-weight:800;margin-bottom:4px">${m.who==='me'?'You':'Seller'}</div>
+      ${m.text}
+      <div style="font-size:11px;opacity:.8;margin-top:4px">${new Date(m.at).toLocaleTimeString()} ${m.who==='me'?'<span class="ticks">✅✅</span>':''}</div>`;
+    }
+    logEl.appendChild(d);
+  });
+  logEl.scrollTop=logEl.scrollHeight;
+}
+renderChat();
+
+/* updated auto reply */
+function maybeAutoReply(){
+  if(!order.autoReplyScheduled){
+    order.autoReplyScheduled = true;
+    setTimeout(()=>{
+      order.messages.push({
+        who:'you',
+        type:'text',
+        text:'Drop payment receipt.',
+        at:Date.now()
+      });
+      save();
+      renderChat();
+    },28000); // 28s delay
+  }
+}
+
+document.getElementById('sendBtn').onclick=()=>{
+  const t=document.getElementById('text');
+  if(!t.value.trim())return;
+  order.messages.push({who:'me',type:'text',text:t.value.trim(),at:Date.now()});
+  save();renderChat();t.value='';maybeAutoReply();
+};
+document.getElementById('img').addEventListener('change',(e)=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    order.messages.push({who:'me',type:'img',data:rd.result,at:Date.now()});
+    save();renderChat();maybeAutoReply();
+  };rd.readAsDataURL(f);
+});
+
+function setStage(stage,extraMs=0){
+  order.stage=stage;
+  order.stageEndAt=extraMs?Date.now()+extraMs:null;
+  save();updateUI();
+}
+function updateUI(){
+  const btnC=document.getElementById('btnComplete');
+  const btnX=document.getElementById('btnCancel');
+  if(order.stage===STAGES.MAKE){
+    badgeEl.textContent='Make Payment';
+    instrEl.textContent='Do not close this page until the payment is completed.';
+    btnC.style.display='inline-block';btnX.style.display='inline-block';
+  }else if(order.stage===STAGES.WAIT_CONFIRM){
+    badgeEl.textContent='Waiting for Seller Confirmation';
+    instrEl.textContent='We notified the seller. Please wait for confirmation.';
+    btnC.style.display='none';btnX.style.display='none';
+  }else if(order.stage===STAGES.UPLOAD_RECEIPT){
+    badgeEl.textContent='Action Required';
+    instrEl.innerHTML='Payment was not confirmed. Please upload receipt via chat to continue.';
+    btnC.style.display='none';btnX.style.display='none';
+  }else if(order.stage===STAGES.REVIEW){
+    badgeEl.textContent='Under Review';
+    instrEl.textContent='Your receipt was submitted. Please wait while we review.';
+    btnC.style.display='none';btnX.style.display='none';
+  }else if(order.stage===STAGES.BANNED){
+    badgeEl.textContent='Account Reported';
+    instrEl.textContent='Your account was reported. You cannot use P2P market again.';
+    btnC.style.display='none';btnX.style.display='none';
+  }
+}
+updateUI();
+function tick(){
+  if(order.stageEndAt){
+    const left=order.stageEndAt-Date.now();
+    if(left<=0){
+      if(order.stage===STAGES.MAKE){
+        pushOrderRecord('Expired');localStorage.removeItem('currentP2POrder');location.href='p2p.html';return;
+      }else if(order.stage===STAGES.WAIT_CONFIRM){
+        order.stageEndAt=null;setStage(STAGES.UPLOAD_RECEIPT);
+      }else if(order.stage===STAGES.REVIEW){
+        localStorage.setItem('p2pBanned','true');setStage(STAGES.BANNED);
+      }
+    }
+    timerEl.textContent=left>0?new Date(left).toISOString().substr(11,8):'00:00:00';
+  }else{timerEl.textContent='—';}
+  requestAnimationFrame(()=>setTimeout(tick,250));
+}
+tick();
+document.getElementById('btnCancel').onclick=()=>{pushOrderRecord('Cancelled');localStorage.removeItem('currentP2POrder');location.href='p2p.html';};
+document.getElementById('btnComplete').onclick=()=>{pushOrderRecord('Awaiting Seller Confirmation');setStage(STAGES.WAIT_CONFIRM,30*60*1000);};
+const observer=new MutationObserver(()=>{
+  if(order.stage===STAGES.UPLOAD_RECEIPT){
+    const hasNewImg=(order.messages||[]).some(m=>m.type==='img');
+    if(hasNewImg){pushOrderRecord('Under Review');setStage(STAGES.REVIEW,60*60*1000);observer.disconnect();}
+  }
+});
+observer.observe(logEl,{childList:true,subtree:true});
+
+// Toggle chat visibility
+document.getElementById('toggleChatBtn').onclick=()=>{
+  const box=document.getElementById('contactBox');
+  box.style.display=box.style.display==='flex'?'none':'flex';
+};
+</script>
+</body>
+</html>

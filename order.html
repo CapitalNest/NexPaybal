@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>NexPay — Orders</title>
+<meta name="theme-color" content="#0b0f1a"/>
+<style>
+  :root{--bg:#0b0f1a;--card:#0f1424;--pri:#6ee7ff;--pri2:#7c3aed;--mut:#9aa3b2}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:
+    radial-gradient(1200px 600px at 90% 0%, rgba(124,58,237,.25), transparent 60%),
+    radial-gradient(900px 500px at -10% 100%, rgba(110,231,255,.18), transparent 60%),var(--bg);
+    color:#e7ecf5;font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+  header{padding:14px 16px;background:#111827aa;border-bottom:1px solid rgba(255,255,255,.08)}
+  .list{padding:16px;max-width:900px;margin:0 auto 80px}
+  .item{display:flex;justify-content:space-between;align-items:center;margin:10px 0;padding:14px;border-radius:16px;
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)),var(--card);border:1px solid rgba(255,255,255,.06);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .mut{color:#9aa3b2}
+  footer{position:fixed;left:0;right:0;bottom:0;background:#111827ee;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-around;padding:10px 0}
+  .fitem{color:#9aa3b2;text-decoration:none;font-weight:800}
+  .empty{color:#9aa3b2;text-align:center;margin-top:40px}
+</style>
+</head>
+<body>
+<header><strong>Orders</strong></header>
+<div id="list" class="list"></div>
+<div id="empty" class="empty" style="display:none">You do not have any available order now.</div>
+
+<footer>
+  <a class="fitem" href="p2p.html">P2P</a>
+  <a class="fitem" href="order.html" style="color:#6ee7ff">Orders</a>
+</footer>
+
+<script>
+function fmt(n){ return '₦'+Number(n).toLocaleString(); }
+const listEl=document.getElementById('list');
+const emptyEl=document.getElementById('empty');
+const orders = JSON.parse(localStorage.getItem('orders')||'[]');
+if(!orders.length){ emptyEl.style.display='block'; }
+orders.forEach(o=>{
+  const d=document.createElement('div');
+  d.className='item';
+  d.innerHTML=`
+    <div>
+      <div><strong>${o.seller}</strong></div>
+      <div class="mut">${new Date(o.createdAt).toLocaleString()}</div>
+    </div>
+    <div>
+      <div style="text-align:right;font-weight:900">${fmt(o.amount)}</div>
+      <div class="mut" style="text-align:right">${o.status}</div>
+    </div>
+  `;
+  listEl.appendChild(d);
+});
+</script>
+</body>
+</html>
